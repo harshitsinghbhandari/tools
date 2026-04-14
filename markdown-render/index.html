@@ -511,6 +511,71 @@
             opacity: 0.4;
         }
 
+        /* Panel expand buttons */
+        .panel-expand {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 32px;
+            height: 32px;
+            background: var(--paper);
+            border: 1px solid var(--stone);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--graphite);
+            transition: all 0.2s;
+            z-index: 20;
+        }
+
+        .panel-expand:hover {
+            background: var(--ink);
+            border-color: var(--ink);
+            color: var(--paper);
+        }
+
+        .panel-expand svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .editor-panel .panel-expand {
+            background: var(--cream);
+        }
+
+        /* Fullscreen modes */
+        body.editor-fullscreen .preview-panel,
+        body.preview-fullscreen .editor-panel {
+            display: none;
+        }
+
+        body.editor-fullscreen .editor-panel,
+        body.preview-fullscreen .preview-panel {
+            grid-column: 1 / -1;
+        }
+
+        body.editor-fullscreen .header,
+        body.preview-fullscreen .header {
+            display: none;
+        }
+
+        body.editor-fullscreen,
+        body.preview-fullscreen {
+            overflow: auto;
+        }
+
+        body.editor-fullscreen .main,
+        body.preview-fullscreen .main {
+            grid-template-columns: 1fr;
+            height: 100vh;
+        }
+
+        body.editor-fullscreen .editor-panel {
+            border-right: none;
+        }
+
         /* Responsive */
         @media (max-width: 900px) {
             .main {
@@ -603,6 +668,11 @@
     <main class="main">
         <div class="editor-panel">
             <span class="panel-label">Input</span>
+            <button class="panel-expand" onclick="toggleFullscreen('editor')" title="Toggle fullscreen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                </svg>
+            </button>
             <textarea id="markdown" placeholder="Start typing your markdown here...
 
 # Welcome to Ink
@@ -621,6 +691,11 @@ A beautiful markdown renderer with an editorial aesthetic.
         </div>
         <div class="preview-panel">
             <span class="panel-label">Preview</span>
+            <button class="panel-expand" onclick="toggleFullscreen('preview')" title="Toggle fullscreen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                </svg>
+            </button>
             <div class="corner-decor top-left"></div>
             <div class="corner-decor bottom-right"></div>
             <div id="preview"></div>
@@ -653,10 +728,31 @@ A beautiful markdown renderer with an editorial aesthetic.
             }
         }
 
-        let renderTimer = null;
-        textarea.addEventListener('input', function() {
-            clearTimeout(renderTimer);
-            renderTimer = setTimeout(renderMarkdown, 150);
+        // Update preview every 30 seconds instead of on every keystroke
+        setInterval(renderMarkdown, 30000);
+
+        // Also render when textarea loses focus
+        textarea.addEventListener('blur', renderMarkdown);
+
+        // Fullscreen toggle
+        function toggleFullscreen(panel) {
+            const editorClass = 'editor-fullscreen';
+            const previewClass = 'preview-fullscreen';
+
+            if (panel === 'editor') {
+                document.body.classList.remove(previewClass);
+                document.body.classList.toggle(editorClass);
+            } else {
+                document.body.classList.remove(editorClass);
+                document.body.classList.toggle(previewClass);
+            }
+        }
+
+        // Exit fullscreen with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.body.classList.remove('editor-fullscreen', 'preview-fullscreen');
+            }
         });
 
         // Auto-save functionality
@@ -759,14 +855,33 @@ A beautiful markdown renderer with an editorial aesthetic.
         }
 
         function exportPDF() {
+            // Create visible container for html2canvas to capture
             const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;overflow:hidden;';
+            wrapper.style.cssText = 'position:absolute;left:-9999px;top:0;width:800px;background:#faf8f5;';
 
             const clone = document.createElement('div');
-            clone.style.cssText = 'position:absolute;top:0;left:0;width:800px;padding:48px;background:#faf8f5;color:#1a1a1a;font-family:Cormorant Garamond,Georgia,serif;line-height:1.9;';
+            clone.style.cssText = 'padding:48px;background:#faf8f5;color:#1a1a1a;line-height:1.9;';
 
             const styleEl = document.createElement('style');
-            styleEl.textContent = LIGHT_CSS;
+            styleEl.textContent = `
+                * { font-family: Georgia, serif; }
+                h1 { font-size: 2.5em; font-weight: 700; margin: 0 0 0.5em; }
+                h2 { font-size: 1.6em; font-weight: 600; margin: 2em 0 0.75em; padding-bottom: 0.5em; border-bottom: 1px solid #e8e4dd; }
+                h3 { font-size: 1.1em; font-weight: 600; margin: 1.75em 0 0.75em; }
+                p { font-size: 1.1em; margin: 1em 0; }
+                a { color: #c45c3e; text-decoration: none; }
+                code { font-family: monospace; font-size: 0.85em; background: #f5f2ed; padding: 3px 8px; border-radius: 3px; color: #9a3d25; }
+                pre { background: #1a1a1a; color: #f5f2ed; padding: 24px; border-radius: 4px; overflow-x: auto; margin: 1.5em 0; }
+                pre code { background: none; color: inherit; padding: 0; }
+                blockquote { font-style: italic; color: #6b6b6b; border-left: 3px solid #c45c3e; padding-left: 24px; margin: 1.5em 0; }
+                ul, ol { margin: 1em 0; padding-left: 1.5em; }
+                li { margin: 0.5em 0; }
+                table { width: 100%; border-collapse: collapse; margin: 1.5em 0; }
+                th { background: #f5f2ed; padding: 14px 16px; text-align: left; font-weight: 600; border-bottom: 2px solid #1a1a1a; }
+                td { padding: 14px 16px; border-bottom: 1px solid #e8e4dd; }
+                hr { border: none; height: 1px; background: #e8e4dd; margin: 3em 0; }
+                img { max-width: 100%; height: auto; }
+            `;
             clone.appendChild(styleEl);
 
             const content = document.createElement('div');
@@ -776,15 +891,29 @@ A beautiful markdown renderer with an editorial aesthetic.
             wrapper.appendChild(clone);
             document.body.appendChild(wrapper);
 
-            html2pdf().set({
-                margin: [16, 16],
-                filename: 'document.pdf',
-                image: {type: 'jpeg', quality: 0.98},
-                html2canvas: {scale: 2, useCORS: true, backgroundColor: '#faf8f5'},
-                jsPDF: {unit: 'mm', format: 'a4', orientation: 'portrait'}
-            }).from(clone).save().then(function() {
-                document.body.removeChild(wrapper);
-            });
+            // Wait a moment for styles to apply, then generate PDF
+            setTimeout(function() {
+                html2pdf().set({
+                    margin: [10, 10, 10, 10],
+                    filename: 'document.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor: '#faf8f5',
+                        logging: false,
+                        windowWidth: 800
+                    },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                }).from(clone).save().then(function() {
+                    document.body.removeChild(wrapper);
+                }).catch(function(err) {
+                    console.error('PDF export error:', err);
+                    document.body.removeChild(wrapper);
+                    alert('PDF export failed. Try exporting as HTML instead.');
+                });
+            }, 100);
         }
 
         function triggerDownload(url, filename) {
