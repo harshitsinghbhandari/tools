@@ -855,12 +855,12 @@ A beautiful markdown renderer with an editorial aesthetic.
         }
 
         function exportPDF() {
-            // Create container positioned on-screen for proper capture
+            // Create container at left edge for proper capture
             const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#faf8f5;z-index:9999;overflow:auto;';
+            wrapper.style.cssText = 'position:fixed;top:0;left:0;z-index:9999;overflow:visible;';
 
             const clone = document.createElement('div');
-            clone.style.cssText = 'width:210mm;max-width:210mm;margin:0 auto;padding:20mm;background:#faf8f5;color:#1a1a1a;line-height:1.8;box-sizing:border-box;';
+            clone.style.cssText = 'width:800px;padding:48px;background:#faf8f5;color:#1a1a1a;line-height:1.8;box-sizing:border-box;';
 
             const styleEl = document.createElement('style');
             styleEl.textContent = `
@@ -896,7 +896,7 @@ A beautiful markdown renderer with an editorial aesthetic.
             // Wait for render, then generate PDF
             setTimeout(function() {
                 html2pdf().set({
-                    margin: 0,
+                    margin: [10, 10, 10, 10],
                     filename: 'document.pdf',
                     image: { type: 'jpeg', quality: 0.98 },
                     html2canvas: {
@@ -904,10 +904,10 @@ A beautiful markdown renderer with an editorial aesthetic.
                         useCORS: true,
                         backgroundColor: '#faf8f5',
                         logging: false,
+                        x: 0,
+                        y: 0,
                         scrollX: 0,
-                        scrollY: 0,
-                        width: clone.offsetWidth,
-                        windowWidth: clone.offsetWidth
+                        scrollY: 0
                     },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                     pagebreak: { mode: 'css', avoid: ['pre', 'blockquote', 'tr'] }
