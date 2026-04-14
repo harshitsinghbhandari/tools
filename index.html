@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools — A Collection of Productivity Utilities</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #08080a;
+            --surface: #111114;
+            --border: #222228;
+            --text: #ffffff;
+            --text-dim: #888890;
+            --accent-1: #00ff88;
+            --accent-2: #c45c3e;
+            --font-display: 'Syne', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-display);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated gradient background */
+        .bg-gradient {
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 20% 40%, rgba(0, 255, 136, 0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 60%, rgba(196, 92, 62, 0.08), transparent);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Grid pattern */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Noise overlay */
+        .bg-noise {
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            padding: 32px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--text);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            position: relative;
+        }
+
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-1);
+            border-radius: 50%;
+            top: -4px;
+            right: -4px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-link {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-dim);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--text);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 120px 0 80px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 8px 16px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 32px;
+        }
+
+        .hero-badge-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-1);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .hero-title {
+            font-size: clamp(48px, 10vw, 96px);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1;
+            margin-bottom: 24px;
+        }
+
+        .hero-title-gradient {
+            background: linear-gradient(135deg, var(--text) 0%, var(--text-dim) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text-dim);
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.7;
+            letter-spacing: 0.02em;
+        }
+
+        /* Decorative elements */
+        .hero-decoration {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 48px;
+            opacity: 0.4;
+        }
+
+        .hero-decoration span {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        /* Tools grid */
+        .tools-section {
+            padding: 80px 0 120px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .section-line {
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+        }
+
+        .tool-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--card-accent), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tool-card:hover {
+            border-color: var(--card-accent);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px -20px var(--card-accent);
+        }
+
+        .tool-card:hover::before {
+            opacity: 1;
+        }
+
+        .tool-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .tool-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .tool-arrow {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dim);
+            transition: all 0.3s;
+        }
+
+        .tool-card:hover .tool-arrow {
+            background: var(--card-accent);
+            border-color: var(--card-accent);
+            color: var(--bg);
+            transform: rotate(-45deg);
+        }
+
+        .tool-content {
+            flex: 1;
+        }
+
+        .tool-name {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .tool-tagline {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--card-accent);
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+
+        .tool-description {
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .tool-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .tool-tag {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 6px 12px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+        }
+
+        /* Card specific accents */
+        .tool-card.ink {
+            --card-accent: var(--accent-2);
+        }
+
+        .tool-card.flux {
+            --card-accent: var(--accent-1);
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 32px 0;
+        }
+
+        .footer-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-text {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-link {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: var(--text);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero {
+                padding: 80px 0 60px;
+            }
+
+            .hero-title {
+                font-size: 40px;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .hero-decoration {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-badge,
+        .hero-title,
+        .hero-subtitle,
+        .hero-decoration {
+            animation: fadeInUp 0.8s ease-out both;
+        }
+
+        .hero-title { animation-delay: 0.1s; }
+        .hero-subtitle { animation-delay: 0.2s; }
+        .hero-decoration { animation-delay: 0.3s; }
+
+        .tool-card {
+            animation: fadeInUp 0.6s ease-out both;
+        }
+
+        .tool-card:nth-child(1) { animation-delay: 0.4s; }
+        .tool-card:nth-child(2) { animation-delay: 0.5s; }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-noise"></div>
+
+    <header>
+        <div class="container">
+            <div class="header-inner">
+                <div class="logo">
+                    <div class="logo-icon">T</div>
+                    <span class="logo-text">Tools</span>
+                </div>
+                <a href="https://github.com" class="nav-link" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="hero-badge">
+                    <span class="hero-badge-dot"></span>
+                    Open Source Utilities
+                </div>
+                <h1 class="hero-title">
+                    <span class="hero-title-gradient">Productivity<br>Essentials</span>
+                </h1>
+                <p class="hero-subtitle">
+                    A curated collection of beautifully designed, single-purpose tools.
+                    No accounts. No tracking. Just utilities that work.
+                </p>
+                <div class="hero-decoration">
+                    <span>Minimal</span>
+                    <span>Fast</span>
+                    <span>Offline-Ready</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="tools-section">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-line"></div>
+                    <span class="section-label">Available Tools</span>
+                    <div class="section-line"></div>
+                </div>
+
+                <div class="tools-grid">
+                    <a href="./markdown-render/" class="tool-card ink">
+                        <div class="tool-card-header">
+                            <div class="tool-icon">I</div>
+                            <div class="tool-arrow">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="tool-content">
+                            <h3 class="tool-name">Ink</h3>
+                            <p class="tool-tagline">Markdown Renderer</p>
+                            <p class="tool-description">
+                                Transform markdown into beautifully typeset documents with live preview.
+                                Supports Mermaid diagrams, code highlighting, and exports to HTML/PDF.
+                            </p>
+                        </div>
+                        <div class="tool-tags">
+                            <span class="tool-tag">Markdown</span>
+                            <span class="tool-tag">Live Preview</span>
+                            <span class="tool-tag">Export</span>
+                            <span class="tool-tag">Mermaid</span>
+                        </div>
+                    </a>
+
+                    <a href="./timer/" class="tool-card flux">
+                        <div class="tool-card-header">
+                            <div class="tool-icon">F</div>
+                            <div class="tool-arrow">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="tool-content">
+                            <h3 class="tool-name">Flux</h3>
+                            <p class="tool-tagline">Focus Timer</p>
+                            <p class="tool-description">
+                                A distraction-free countdown timer with preset intervals, focus mode,
+                                and picture-in-picture support. Perfect for pomodoro sessions.
+                            </p>
+                        </div>
+                        <div class="tool-tags">
+                            <span class="tool-tag">Timer</span>
+                            <span class="tool-tag">Pomodoro</span>
+                            <span class="tool-tag">Focus Mode</span>
+                            <span class="tool-tag">PiP</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-inner">
+                <p class="footer-text">Built with precision. No dependencies required.</p>
+                <div class="footer-links">
+                    <a href="./markdown-render/" class="footer-link">Ink</a>
+                    <a href="./timer/" class="footer-link">Flux</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
