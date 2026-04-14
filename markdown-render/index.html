@@ -658,7 +658,43 @@ A beautiful markdown renderer with an editorial aesthetic.
             clearTimeout(renderTimer);
             renderTimer = setTimeout(renderMarkdown, 150);
         });
-        renderMarkdown();
+
+        // Auto-save functionality
+        const STORAGE_KEY = 'ink-markdown-content';
+
+        function saveToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, textarea.value);
+            } catch (e) {
+                console.warn('Failed to save to localStorage:', e);
+            }
+        }
+
+        function loadFromStorage() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved !== null) {
+                    textarea.value = saved;
+                    return true;
+                }
+            } catch (e) {
+                console.warn('Failed to load from localStorage:', e);
+            }
+            return false;
+        }
+
+        // Load saved content on page open
+        if (loadFromStorage()) {
+            renderMarkdown();
+        } else {
+            renderMarkdown();
+        }
+
+        // Auto-save every 1 minute
+        setInterval(saveToStorage, 60000);
+
+        // Also save on page unload
+        window.addEventListener('beforeunload', saveToStorage);
 
         function pasteContent() {
             if (!navigator.clipboard || !navigator.clipboard.readText) {
@@ -680,6 +716,7 @@ A beautiful markdown renderer with an editorial aesthetic.
 
         function clearContent() {
             textarea.value = '';
+            localStorage.removeItem(STORAGE_KEY);
             renderMarkdown();
         }
 
