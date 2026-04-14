@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Renderer</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ── Dark mode (default) ── */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0f0f1a;
+            min-height: 100vh;
+            padding: 20px;
+            color: #cdd6f4;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        .panel {
+            background: #1e1e2e;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 10px 16px;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            white-space: nowrap;
+            line-height: 1.4;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.28);
+            border-color: rgba(255, 255, 255, 0.55);
+        }
+
+        .btn:active {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        textarea {
+            flex: 1;
+            padding: 20px;
+            border: none;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            background: #1e1e2e;
+            color: #cdd6f4;
+        }
+
+        textarea::placeholder {
+            color: #585b70;
+        }
+
+        #preview {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            line-height: 1.8;
+        }
+
+        /* ── Markdown preview – dark mode ── */
+        #preview h1 {
+            font-size: 2em;
+            margin: 0.67em 0;
+            font-weight: 700;
+            color: #cdd6f4;
+        }
+
+        #preview h2 {
+            font-size: 1.5em;
+            margin: 0.75em 0;
+            font-weight: 700;
+            color: #b4befe;
+            border-bottom: 2px solid #4f46e5;
+            padding-bottom: 0.3em;
+        }
+
+        #preview h3 {
+            font-size: 1.25em;
+            margin: 0.83em 0;
+            font-weight: 700;
+            color: #cba6f7;
+        }
+
+        #preview h4, #preview h5, #preview h6 {
+            margin: 1em 0;
+            font-weight: 700;
+            color: #a6adc8;
+        }
+
+        #preview p {
+            margin: 1em 0;
+            color: #cdd6f4;
+        }
+
+        #preview a {
+            color: #89b4fa;
+            text-decoration: none;
+            border-bottom: 1px solid #89b4fa;
+        }
+
+        #preview a:hover {
+            background: rgba(137, 180, 250, 0.12);
+        }
+
+        #preview code {
+            background: #313244;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #f38ba8;
+        }
+
+        #preview pre {
+            background: #181825;
+            color: #cdd6f4;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1em 0;
+            line-height: 1.5;
+        }
+
+        #preview pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        #preview blockquote {
+            border-left: 4px solid #4f46e5;
+            padding-left: 16px;
+            margin: 1em 0;
+            color: #a6adc8;
+            font-style: italic;
+        }
+
+        #preview ul, #preview ol {
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+
+        #preview li {
+            margin: 0.5em 0;
+            color: #cdd6f4;
+        }
+
+        #preview strong {
+            font-weight: 700;
+            color: #cdd6f4;
+        }
+
+        #preview em {
+            font-style: italic;
+        }
+
+        #preview img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 1em 0;
+        }
+
+        #preview table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+
+        #preview table th {
+            background: #313244;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #45475a;
+            color: #cdd6f4;
+        }
+
+        #preview table td {
+            padding: 12px;
+            border: 1px solid #45475a;
+            color: #cdd6f4;
+        }
+
+        #preview hr {
+            border: none;
+            border-top: 2px solid #45475a;
+            margin: 2em 0;
+        }
+
+        .mermaid-diagram {
+            margin: 1em 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        .mermaid-diagram svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .panel {
+                min-height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="panel">
+            <div class="panel-header">
+                <span class="header-title">📝 Markdown Input</span>
+                <div class="btn-group">
+                    <button class="btn" onclick="pasteContent()" title="Paste clipboard content">📋 Paste</button>
+                    <button class="btn" onclick="clearContent()" title="Clear editor">🗑️ Clear</button>
+                    <button class="btn" onclick="exportMD()" title="Download as .md file">⬇ MD</button>
+                </div>
+            </div>
+            <textarea id="markdown" placeholder="Paste your markdown here...
+# Example
+
+## Try it out!
+
+- Bullet points
+- **Bold text**
+- *Italic text*
+- [Links](https://example.com)
+
+\`\`\`javascript
+console.log('Code blocks work too!');
+\`\`\`"></textarea>
+        </div>
+        <div class="panel">
+            <div class="panel-header">
+                <span class="header-title">👁️ Preview</span>
+                <div class="btn-group">
+                    <button class="btn" onclick="exportHTML()" title="Download as .html file">⬇ HTML</button>
+                    <button class="btn" onclick="exportPDF()" title="Download as PDF">⬇ PDF</button>
+                </div>
+            </div>
+            <div id="preview"></div>
+        </div>
+    </div>
+
+    <script>
+        const textarea = document.getElementById('markdown');
+        const preview = document.getElementById('preview');
+
+        mermaid.initialize({ startOnLoad: false, theme: 'default' });
+
+        let mermaidIdCounter = 0;
+
+        async function renderMarkdown() {
+            preview.innerHTML = marked.parse(textarea.value);
+            const mermaidBlocks = preview.querySelectorAll('pre code.language-mermaid');
+            for (const block of mermaidBlocks) {
+                const code = block.textContent;
+                const id = 'mermaid-' + (++mermaidIdCounter);
+                try {
+                    const { svg } = await mermaid.render(id, code);
+                    const div = document.createElement('div');
+                    div.className = 'mermaid-diagram';
+                    div.innerHTML = svg;
+                    block.parentElement.replaceWith(div);
+                } catch (e) {
+                    console.error('Mermaid render error:', e);
+                }
+            }
+        }
+
+        let renderTimer = null;
+        textarea.addEventListener('input', function() {
+            clearTimeout(renderTimer);
+            renderTimer = setTimeout(renderMarkdown, 150);
+        });
+        renderMarkdown();
+
+        /* ── Paste ── */
+        function pasteContent() {
+            if (!navigator.clipboard || !navigator.clipboard.readText) {
+                textarea.focus();
+                textarea.setAttribute('aria-label', 'Clipboard API unavailable – press Ctrl+V / Cmd+V to paste');
+                alert('Clipboard API unavailable. Please use Ctrl+V (or Cmd+V) to paste directly into the editor.');
+                return;
+            }
+            navigator.clipboard.readText().then(function(text) {
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end);
+                textarea.selectionStart = textarea.selectionEnd = start + text.length;
+                renderMarkdown();
+            }).catch(function() {
+                textarea.focus();
+                alert('Clipboard access was denied. Please use Ctrl+V (or Cmd+V) to paste directly into the editor.');
+            });
+        }
+
+        /* ── Clear ── */
+        function clearContent() {
+            textarea.value = '';
+            renderMarkdown();
+        }
+
+        /* ── Light-mode CSS used in all exported files ── */
+        const LIGHT_CSS = [
+            'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;',
+            'max-width:860px;margin:40px auto;padding:0 24px;color:#333;',
+            'line-height:1.8;background:#fff;}',
+            'h1{font-size:2em;font-weight:700;color:#222;margin:.67em 0;}',
+            'h2{font-size:1.5em;font-weight:700;color:#333;border-bottom:2px solid #667eea;',
+            'padding-bottom:.3em;margin:.75em 0;}',
+            'h3{font-size:1.25em;font-weight:700;color:#444;margin:.83em 0;}',
+            'h4,h5,h6{font-weight:700;color:#555;margin:1em 0;}',
+            'p{color:#333;margin:1em 0;}',
+            'a{color:#667eea;text-decoration:none;border-bottom:1px solid #667eea;}',
+            'code{background:#f5f5f5;padding:2px 6px;border-radius:3px;',
+            'font-family:Monaco,"Courier New",monospace;font-size:.9em;color:#d73a49;}',
+            'pre{background:#282c34;color:#abb2bf;padding:16px;border-radius:8px;',
+            'overflow-x:auto;margin:1em 0;line-height:1.5;}',
+            'pre code{background:none;color:inherit;padding:0;}',
+            'blockquote{border-left:4px solid #667eea;padding-left:16px;',
+            'margin:1em 0;color:#666;font-style:italic;}',
+            'ul,ol{margin:1em 0;padding-left:2em;}',
+            'li{margin:.5em 0;color:#333;}',
+            'strong{font-weight:700;color:#222;}',
+            'img{max-width:100%;height:auto;border-radius:8px;margin:1em 0;}',
+            'table{border-collapse:collapse;width:100%;margin:1em 0;}',
+            'th{background:#f0f0f0;padding:12px;font-weight:600;border:1px solid #ddd;text-align:left;}',
+            'td{padding:12px;border:1px solid #ddd;}',
+            'hr{border:none;border-top:2px solid #ddd;margin:2em 0;}',
+            '.mermaid-diagram{margin:1em 0;text-align:center;overflow-x:auto;}',
+            '.mermaid-diagram svg{max-width:100%;height:auto;}'
+        ].join('');
+
+        /* ── Export MD ── */
+        function exportMD() {
+            const blob = new Blob([textarea.value], {type: 'text/markdown'});
+            triggerDownload(URL.createObjectURL(blob), 'document.md');
+        }
+
+        /* ── Export HTML ── */
+        function exportHTML() {
+            const html = '<!DOCTYPE html>\n<html lang="en">\n<head>\n' +
+                '  <meta charset="UTF-8">\n' +
+                '  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+                '  <title>Document</title>\n' +
+                '  <style>' + LIGHT_CSS + '</style>\n' +
+                '</head>\n<body>\n' + preview.innerHTML + '\n</body>\n</html>';
+            const blob = new Blob([html], {type: 'text/html'});
+            triggerDownload(URL.createObjectURL(blob), 'document.html');
+        }
+
+        /* ── Export PDF (always light mode) ── */
+        function exportPDF() {
+            /* Wrap the clone in a zero-size fixed container so html2canvas can
+               capture it at viewport coordinates (0,0) without it being visible. */
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;overflow:hidden;';
+
+            const clone = document.createElement('div');
+            clone.style.cssText = 'position:absolute;top:0;left:0;width:800px;' +
+                'padding:32px;background:#fff;color:#333;font-family:-apple-system,' +
+                'BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.8;';
+
+            const styleEl = document.createElement('style');
+            styleEl.textContent = LIGHT_CSS;
+            clone.appendChild(styleEl);
+
+            const content = document.createElement('div');
+            content.innerHTML = preview.innerHTML;
+            clone.appendChild(content);
+
+            wrapper.appendChild(clone);
+            document.body.appendChild(wrapper);
+
+            html2pdf().set({
+                margin: [12, 12],
+                filename: 'document.pdf',
+                image: {type: 'jpeg', quality: 0.98},
+                html2canvas: {scale: 2, useCORS: true, backgroundColor: '#ffffff'},
+                jsPDF: {unit: 'mm', format: 'a4', orientation: 'portrait'}
+            }).from(clone).save().then(function() {
+                document.body.removeChild(wrapper);
+            });
+        }
+
+        /* ── Helper ── */
+        function triggerDownload(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
