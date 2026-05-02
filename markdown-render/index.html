@@ -502,6 +502,33 @@
             height: auto;
         }
 
+        .mermaid-error {
+            margin: 1.5em 0;
+            border: 1px solid #d9534f;
+            border-radius: 4px;
+            background: #fdf3f3;
+            overflow: hidden;
+        }
+
+        .mermaid-error-msg {
+            padding: 10px 14px;
+            background: #d9534f;
+            color: #fff;
+            font-family: var(--serif);
+            font-size: 0.95em;
+        }
+
+        .mermaid-error pre {
+            margin: 0;
+            padding: 12px 14px;
+            background: transparent;
+            border: none;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: var(--graphite);
+            font-size: 0.85em;
+        }
+
         /* Empty state */
         #preview:empty::before {
             content: 'Your rendered markdown will appear here...';
@@ -710,8 +737,18 @@ A beautiful markdown renderer with an editorial aesthetic.
 
         let mermaidIdCounter = 0;
 
+        function cleanupMermaidStragglers() {
+            // Mermaid appends a measurement container `<div id="d{id}">` (and an
+            // `<svg id="{id}">`) to <body> while rendering. On parse/render failure
+            // it doesn't clean them up, leaving the user with visible "Syntax error
+            // in text" SVGs that accumulate across re-renders.
+            document.querySelectorAll('body > div[id^="dmermaid-"]').forEach(el => el.remove());
+            document.querySelectorAll('body > svg[id^="mermaid-"]').forEach(el => el.remove());
+        }
+
         async function renderMarkdown() {
             preview.innerHTML = marked.parse(textarea.value);
+            cleanupMermaidStragglers();
             const mermaidBlocks = preview.querySelectorAll('pre code.language-mermaid');
             for (const block of mermaidBlocks) {
                 const code = block.textContent;
@@ -724,6 +761,19 @@ A beautiful markdown renderer with an editorial aesthetic.
                     block.parentElement.replaceWith(div);
                 } catch (e) {
                     console.error('Mermaid render error:', e);
+                    const errDiv = document.createElement('div');
+                    errDiv.className = 'mermaid-error';
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'mermaid-error-msg';
+                    const firstLine = (e && e.message ? String(e.message) : String(e)).split('\n')[0];
+                    msgDiv.textContent = 'Mermaid: ' + firstLine;
+                    const pre = document.createElement('pre');
+                    pre.textContent = code;
+                    errDiv.appendChild(msgDiv);
+                    errDiv.appendChild(pre);
+                    block.parentElement.replaceWith(errDiv);
+                } finally {
+                    cleanupMermaidStragglers();
                 }
             }
         }
