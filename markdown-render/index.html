@@ -106,6 +106,61 @@
         .header-actions {
             display: flex;
             gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .document-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-right: 8px;
+            margin-right: 8px;
+            border-right: 1px solid var(--stone);
+        }
+
+        .document-select-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .document-label {
+            font-family: var(--sans);
+            font-size: 9px;
+            font-weight: 500;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--graphite);
+        }
+
+        .document-select {
+            min-width: 220px;
+            max-width: 280px;
+            padding: 9px 12px;
+            background: var(--paper);
+            border: 1px solid var(--stone);
+            border-radius: 4px;
+            color: var(--ink);
+            font-family: var(--sans);
+            font-size: 12px;
+            outline: none;
+        }
+
+        .document-select:focus {
+            border-color: var(--rust);
+        }
+
+        .icon-action-btn {
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            justify-content: center;
+        }
+
+        .icon-action-btn svg {
+            width: 18px;
+            height: 18px;
         }
 
         .action-btn {
@@ -131,20 +186,69 @@
             color: var(--paper);
         }
 
-        .action-btn.primary {
-            background: var(--rust);
-            border-color: var(--rust);
-            color: white;
-        }
-
-        .action-btn.primary:hover {
-            background: var(--deep-rust);
-            border-color: var(--deep-rust);
-        }
-
         .action-btn svg {
             width: 14px;
             height: 14px;
+        }
+
+        /* Popover menus */
+        .menu-wrap {
+            position: relative;
+        }
+
+        .menu-trigger[aria-expanded="true"] {
+            background: var(--ink);
+            border-color: var(--ink);
+            color: var(--paper);
+        }
+
+        .menu-panel {
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            min-width: 180px;
+            background: var(--paper);
+            border: 1px solid var(--stone);
+            border-radius: 4px;
+            box-shadow: 0 12px 32px rgba(26, 26, 26, 0.1);
+            padding: 4px;
+            display: none;
+            flex-direction: column;
+            z-index: 30;
+        }
+
+        .menu-wrap.open .menu-panel {
+            display: flex;
+        }
+
+        .menu-item {
+            appearance: none;
+            background: transparent;
+            border: none;
+            text-align: left;
+            padding: 9px 12px;
+            font-family: var(--sans);
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            color: var(--ink);
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .menu-item:hover {
+            background: var(--ink);
+            color: var(--paper);
+        }
+
+        .menu-item.destructive {
+            color: var(--deep-rust);
+        }
+
+        .menu-item.destructive:hover {
+            background: var(--deep-rust);
+            color: var(--paper);
         }
 
         /* Main container */
@@ -628,6 +732,23 @@
             .header-actions {
                 flex-wrap: wrap;
             }
+
+            .document-controls {
+                width: 100%;
+                padding-right: 0;
+                margin-right: 0;
+                border-right: none;
+            }
+
+            .document-select-wrap {
+                flex: 1;
+            }
+
+            .document-select {
+                width: 100%;
+                max-width: none;
+                min-width: 0;
+            }
         }
 
         /* Animation */
@@ -651,44 +772,46 @@
             </div>
         </div>
         <div class="header-actions">
-            <button class="action-btn" onclick="pasteContent()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="9" y="9" width="13" height="13" rx="2"/>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                </svg>
-                Paste
-            </button>
-            <button class="action-btn" onclick="clearContent()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
-                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                </svg>
-                Clear
-            </button>
-            <button class="action-btn" onclick="exportMD()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Export .md
-            </button>
-            <button class="action-btn" onclick="exportHTML()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="16 18 22 12 16 6"/>
-                    <polyline points="8 6 2 12 8 18"/>
-                </svg>
-                Export HTML
-            </button>
-            <button class="action-btn primary" onclick="exportPDF()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                    <line x1="16" y1="13" x2="8" y2="13"/>
-                    <line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
-                Export PDF
-            </button>
+            <div class="document-controls">
+                <label class="document-select-wrap" for="documentSelect">
+                    <span class="document-label">Draft</span>
+                    <select class="document-select" id="documentSelect" onchange="switchDocument(this.value)"></select>
+                </label>
+                <button class="action-btn icon-action-btn" onclick="createDocument()" title="New draft" aria-label="New draft">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                </button>
+                <div class="menu-wrap" data-menu="draft">
+                    <button class="action-btn icon-action-btn menu-trigger" onclick="toggleMenu('draft')" title="More draft actions" aria-label="More draft actions" aria-haspopup="true" aria-expanded="false">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="5" cy="12" r="1.6"/>
+                            <circle cx="12" cy="12" r="1.6"/>
+                            <circle cx="19" cy="12" r="1.6"/>
+                        </svg>
+                    </button>
+                    <div class="menu-panel" role="menu">
+                        <button class="menu-item" role="menuitem" onclick="runMenuAction(renameDocument)">Rename</button>
+                        <button class="menu-item" role="menuitem" onclick="runMenuAction(duplicateDocument)">Duplicate</button>
+                        <button class="menu-item destructive" role="menuitem" onclick="runMenuAction(deleteDocument)">Delete</button>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-wrap" data-menu="export">
+                <button class="action-btn menu-trigger" onclick="toggleMenu('export')" aria-haspopup="true" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Export
+                </button>
+                <div class="menu-panel" role="menu">
+                    <button class="menu-item" role="menuitem" onclick="runMenuAction(exportMD)">Markdown (.md)</button>
+                    <button class="menu-item" role="menuitem" onclick="runMenuAction(exportHTML)">HTML</button>
+                    <button class="menu-item" role="menuitem" onclick="runMenuAction(exportPDF)">PDF</button>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -732,10 +855,18 @@ A beautiful markdown renderer with an editorial aesthetic.
     <script>
         const textarea = document.getElementById('markdown');
         const preview = document.getElementById('preview');
+        const documentSelect = document.getElementById('documentSelect');
 
         mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
 
         let mermaidIdCounter = 0;
+        let docsIndex = [];
+        let activeDocId = null;
+
+        const LEGACY_STORAGE_KEY = 'ink-markdown-content';
+        const DOCS_INDEX_KEY = 'ink-docs-index';
+        const ACTIVE_DOC_KEY = 'ink-active-doc-id';
+        const DOC_KEY_PREFIX = 'ink-doc-';
 
         function cleanupMermaidStragglers() {
             // Mermaid appends a measurement container `<div id="d{id}">` (and an
@@ -778,12 +909,6 @@ A beautiful markdown renderer with an editorial aesthetic.
             }
         }
 
-        // Update preview every 30 seconds instead of on every keystroke
-        setInterval(renderMarkdown, 30000);
-
-        // Also render when textarea loses focus
-        textarea.addEventListener('blur', renderMarkdown);
-
         // Fullscreen toggle
         function toggleFullscreen(panel) {
             const editorClass = 'editor-fullscreen';
@@ -798,73 +923,277 @@ A beautiful markdown renderer with an editorial aesthetic.
             }
         }
 
-        // Exit fullscreen with Escape key
+        // Popover menus (export, draft actions)
+        function closeAllMenus() {
+            document.querySelectorAll('.menu-wrap.open').forEach(wrap => {
+                wrap.classList.remove('open');
+                const trigger = wrap.querySelector('.menu-trigger');
+                if (trigger) trigger.setAttribute('aria-expanded', 'false');
+            });
+        }
+
+        function toggleMenu(name) {
+            const wrap = document.querySelector('.menu-wrap[data-menu="' + name + '"]');
+            if (!wrap) return;
+            const willOpen = !wrap.classList.contains('open');
+            closeAllMenus();
+            if (willOpen) {
+                wrap.classList.add('open');
+                const trigger = wrap.querySelector('.menu-trigger');
+                if (trigger) trigger.setAttribute('aria-expanded', 'true');
+            }
+        }
+
+        function runMenuAction(fn) {
+            closeAllMenus();
+            fn();
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.menu-wrap')) closeAllMenus();
+        });
+
+        // Escape closes menus and exits fullscreen
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
+                closeAllMenus();
                 document.body.classList.remove('editor-fullscreen', 'preview-fullscreen');
             }
         });
 
-        // Auto-save functionality
-        const STORAGE_KEY = 'ink-markdown-content';
+        function nowIso() {
+            return new Date().toISOString();
+        }
+
+        function createDocumentId() {
+            if (window.crypto && crypto.randomUUID) {
+                return crypto.randomUUID();
+            }
+            return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+        }
+
+        function docKey(id) {
+            return DOC_KEY_PREFIX + id;
+        }
+
+        function formatUpdatedAt(value) {
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return 'unsaved';
+            return date.toLocaleString([], {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function readDocsIndex() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(DOCS_INDEX_KEY) || '[]');
+                if (Array.isArray(parsed)) {
+                    return parsed.filter(doc => doc && doc.id && doc.title && doc.updatedAt);
+                }
+            } catch (e) {
+                console.warn('Failed to read document index:', e);
+            }
+            return [];
+        }
+
+        function writeDocsIndex() {
+            localStorage.setItem(DOCS_INDEX_KEY, JSON.stringify(docsIndex));
+        }
+
+        function getActiveDoc() {
+            return docsIndex.find(doc => doc.id === activeDocId) || null;
+        }
+
+        function getDocumentContent(id) {
+            return localStorage.getItem(docKey(id)) || '';
+        }
+
+        function setActiveDocument(id) {
+            activeDocId = id;
+            localStorage.setItem(ACTIVE_DOC_KEY, id);
+        }
+
+        function sortDocs() {
+            docsIndex.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        }
+
+        function renderDocumentSelect() {
+            documentSelect.innerHTML = '';
+            sortDocs();
+            docsIndex.forEach(doc => {
+                const option = document.createElement('option');
+                option.value = doc.id;
+                option.textContent = doc.title + ' - ' + formatUpdatedAt(doc.updatedAt);
+                documentSelect.appendChild(option);
+            });
+            documentSelect.value = activeDocId;
+        }
+
+        function createDocumentRecord(title, content) {
+            const doc = {
+                id: createDocumentId(),
+                title: title || 'Untitled',
+                updatedAt: nowIso()
+            };
+            docsIndex.unshift(doc);
+            localStorage.setItem(docKey(doc.id), content || '');
+            writeDocsIndex();
+            return doc;
+        }
+
+        function migrateLegacyDocument() {
+            const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+            if (legacy !== null && docsIndex.length === 0) {
+                const migrated = createDocumentRecord('Untitled', legacy);
+                localStorage.removeItem(LEGACY_STORAGE_KEY);
+                setActiveDocument(migrated.id);
+                return true;
+            }
+            if (legacy !== null) {
+                localStorage.removeItem(LEGACY_STORAGE_KEY);
+            }
+            return false;
+        }
 
         function saveToStorage() {
+            if (!activeDocId) return;
             try {
-                localStorage.setItem(STORAGE_KEY, textarea.value);
+                localStorage.setItem(docKey(activeDocId), textarea.value);
+                const doc = getActiveDoc();
+                if (doc) {
+                    doc.updatedAt = nowIso();
+                    writeDocsIndex();
+                    renderDocumentSelect();
+                }
             } catch (e) {
                 console.warn('Failed to save to localStorage:', e);
             }
         }
 
         function loadFromStorage() {
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved !== null) {
-                    textarea.value = saved;
-                    return true;
-                }
-            } catch (e) {
-                console.warn('Failed to load from localStorage:', e);
+            docsIndex = readDocsIndex();
+            migrateLegacyDocument();
+
+            if (docsIndex.length === 0) {
+                const doc = createDocumentRecord('Untitled', '');
+                setActiveDocument(doc.id);
+            } else {
+                const savedActiveId = localStorage.getItem(ACTIVE_DOC_KEY);
+                const activeExists = docsIndex.some(doc => doc.id === savedActiveId);
+                setActiveDocument(activeExists ? savedActiveId : docsIndex[0].id);
             }
-            return false;
+
+            textarea.value = getDocumentContent(activeDocId);
+            renderDocumentSelect();
+            return true;
+        }
+
+        function switchDocument(id) {
+            if (!id || id === activeDocId) return;
+            flushPendingSave();
+            setActiveDocument(id);
+            textarea.value = getDocumentContent(activeDocId);
+            renderDocumentSelect();
+            renderMarkdown();
+            textarea.focus();
+        }
+
+        function createDocument() {
+            flushPendingSave();
+            const title = prompt('Name this draft:', 'Untitled');
+            if (title === null) return;
+            const doc = createDocumentRecord(title.trim() || 'Untitled', '');
+            setActiveDocument(doc.id);
+            textarea.value = '';
+            renderDocumentSelect();
+            renderMarkdown();
+            textarea.focus();
+        }
+
+        function renameDocument() {
+            const doc = getActiveDoc();
+            if (!doc) return;
+            const title = prompt('Rename this draft:', doc.title);
+            if (title === null) return;
+            const nextTitle = title.trim();
+            if (!nextTitle) return;
+            doc.title = nextTitle;
+            doc.updatedAt = nowIso();
+            writeDocsIndex();
+            renderDocumentSelect();
+        }
+
+        function duplicateDocument() {
+            const doc = getActiveDoc();
+            if (!doc) return;
+            flushPendingSave();
+            const copy = createDocumentRecord(doc.title + ' Copy', textarea.value);
+            setActiveDocument(copy.id);
+            renderDocumentSelect();
+            renderMarkdown();
+            textarea.focus();
+        }
+
+        function deleteDocument() {
+            const doc = getActiveDoc();
+            if (!doc) return;
+            if (docsIndex.length === 1) {
+                if (!confirm('Delete this draft and start a new empty one?')) return;
+                localStorage.removeItem(docKey(doc.id));
+                docsIndex = [];
+                const replacement = createDocumentRecord('Untitled', '');
+                setActiveDocument(replacement.id);
+                textarea.value = '';
+            } else {
+                if (!confirm('Delete "' + doc.title + '"?')) return;
+                const deletedIndex = docsIndex.findIndex(item => item.id === doc.id);
+                localStorage.removeItem(docKey(doc.id));
+                docsIndex = docsIndex.filter(item => item.id !== doc.id);
+                writeDocsIndex();
+                const nextDoc = docsIndex[Math.max(0, deletedIndex - 1)] || docsIndex[0];
+                setActiveDocument(nextDoc.id);
+                textarea.value = getDocumentContent(activeDocId);
+            }
+            renderDocumentSelect();
+            renderMarkdown();
         }
 
         // Load saved content on page open
-        if (loadFromStorage()) {
-            renderMarkdown();
-        } else {
-            renderMarkdown();
+        loadFromStorage();
+        renderMarkdown();
+
+        // Throttle saves to at most once every 5s while typing.
+        let saveTimer = null;
+        function scheduleSave() {
+            if (saveTimer) return;
+            saveTimer = setTimeout(function() {
+                saveTimer = null;
+                saveToStorage();
+            }, 5000);
         }
 
-        // Auto-save every 1 minute
-        setInterval(saveToStorage, 60000);
-
-        // Also save on page unload
-        window.addEventListener('beforeunload', saveToStorage);
-
-        function pasteContent() {
-            if (!navigator.clipboard || !navigator.clipboard.readText) {
-                textarea.focus();
-                alert('Clipboard API unavailable. Please use Ctrl+V (or Cmd+V) to paste directly into the editor.');
-                return;
-            }
-            navigator.clipboard.readText().then(function(text) {
-                const start = textarea.selectionStart;
-                const end = textarea.selectionEnd;
-                textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end);
-                textarea.selectionStart = textarea.selectionEnd = start + text.length;
-                renderMarkdown();
-            }).catch(function() {
-                textarea.focus();
-                alert('Clipboard access was denied. Please use Ctrl+V (or Cmd+V) to paste directly into the editor.');
-            });
+        function flushPendingSave() {
+            if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+            saveToStorage();
         }
 
-        function clearContent() {
-            textarea.value = '';
-            localStorage.removeItem(STORAGE_KEY);
-            renderMarkdown();
-        }
+        textarea.addEventListener('input', scheduleSave);
+
+        textarea.addEventListener('blur', flushPendingSave);
+
+        window.addEventListener('beforeunload', flushPendingSave);
+
+        // Preview re-renders on a fixed 5s tick, independent of typing.
+        setInterval(renderMarkdown, 5000);
+
+        // Double-click the draft selector to rename the current draft.
+        documentSelect.addEventListener('dblclick', function(e) {
+            e.preventDefault();
+            renameDocument();
+        });
 
         const LIGHT_CSS = `
             body{font-family:'Cormorant Garamond',Georgia,serif;max-width:720px;margin:48px auto;padding:0 24px;color:#1a1a1a;line-height:1.9;background:#faf8f5;}
