@@ -901,6 +901,13 @@ A beautiful markdown renderer with an editorial aesthetic.
         const DOCS_INDEX_KEY = 'ink-docs-index';
         const ACTIVE_DOC_KEY = 'ink-active-doc-id';
         const DOC_KEY_PREFIX = 'ink-doc-';
+        const PREVIEW_RENDER_DEBOUNCE_MS = 700;
+        const PREVIEW_RENDER_MAX_WAIT_MS = 5000;
+
+        let previewRenderTimer = null;
+        let previewRenderMaxTimer = null;
+        let lastRenderedMarkdown = null;
+        let renderSequence = 0;
 
         function cleanupMermaidStragglers() {
             // Mermaid appends a measurement container `<div id="d{id}">` (and an
@@ -911,15 +918,23 @@ A beautiful markdown renderer with an editorial aesthetic.
             document.querySelectorAll('body > svg[id^="mermaid-"]').forEach(el => el.remove());
         }
 
-        async function renderMarkdown() {
-            preview.innerHTML = marked.parse(textarea.value);
+        async function renderMarkdown(options) {
+            const force = options && options.force;
+            const markdown = textarea.value;
+            if (!force && markdown === lastRenderedMarkdown) return;
+
+            lastRenderedMarkdown = markdown;
+            const currentRender = ++renderSequence;
+            preview.innerHTML = marked.parse(markdown);
             cleanupMermaidStragglers();
             const mermaidBlocks = preview.querySelectorAll('pre code.language-mermaid');
             for (const block of mermaidBlocks) {
+                if (currentRender !== renderSequence) return;
                 const code = block.textContent;
                 const id = 'mermaid-' + (++mermaidIdCounter);
                 try {
                     const { svg } = await mermaid.render(id, code);
+                    if (currentRender !== renderSequence) return;
                     const div = document.createElement('div');
                     div.className = 'mermaid-diagram';
                     div.innerHTML = svg;
@@ -940,6 +955,46 @@ A beautiful markdown renderer with an editorial aesthetic.
                 } finally {
                     cleanupMermaidStragglers();
                 }
+            }
+        }
+
+        function clearPreviewRenderTimers() {
+            if (previewRenderTimer) {
+                clearTimeout(previewRenderTimer);
+                previewRenderTimer = null;
+            }
+            if (previewRenderMaxTimer) {
+                clearTimeout(previewRenderMaxTimer);
+                previewRenderMaxTimer = null;
+            }
+        }
+
+        function flushPreviewRender() {
+            clearPreviewRenderTimers();
+            return renderMarkdown();
+        }
+
+        function schedulePreviewRender() {
+            if (previewRenderTimer) clearTimeout(previewRenderTimer);
+
+            previewRenderTimer = setTimeout(function() {
+                previewRenderTimer = null;
+                if (previewRenderMaxTimer) {
+                    clearTimeout(previewRenderMaxTimer);
+                    previewRenderMaxTimer = null;
+                }
+                renderMarkdown();
+            }, PREVIEW_RENDER_DEBOUNCE_MS);
+
+            if (!previewRenderMaxTimer) {
+                previewRenderMaxTimer = setTimeout(function() {
+                    if (previewRenderTimer) {
+                        clearTimeout(previewRenderTimer);
+                        previewRenderTimer = null;
+                    }
+                    previewRenderMaxTimer = null;
+                    renderMarkdown();
+                }, PREVIEW_RENDER_MAX_WAIT_MS);
             }
         }
 
@@ -1128,10 +1183,11 @@ A beautiful markdown renderer with an editorial aesthetic.
         function switchDocument(id) {
             if (!id || id === activeDocId) return;
             flushPendingSave();
+            clearPreviewRenderTimers();
             setActiveDocument(id);
             textarea.value = getDocumentContent(activeDocId);
             renderDocumentSelect();
-            renderMarkdown();
+            renderMarkdown({ force: true });
             textarea.focus();
         }
 
@@ -1143,7 +1199,8 @@ A beautiful markdown renderer with an editorial aesthetic.
             setActiveDocument(doc.id);
             textarea.value = '';
             renderDocumentSelect();
-            renderMarkdown();
+            clearPreviewRenderTimers();
+            renderMarkdown({ force: true });
             textarea.focus();
         }
 
@@ -1167,7 +1224,8 @@ A beautiful markdown renderer with an editorial aesthetic.
             const copy = createDocumentRecord(doc.title + ' Copy', textarea.value);
             setActiveDocument(copy.id);
             renderDocumentSelect();
-            renderMarkdown();
+            clearPreviewRenderTimers();
+            renderMarkdown({ force: true });
             textarea.focus();
         }
 
@@ -1192,12 +1250,13 @@ A beautiful markdown renderer with an editorial aesthetic.
                 textarea.value = getDocumentContent(activeDocId);
             }
             renderDocumentSelect();
-            renderMarkdown();
+            clearPreviewRenderTimers();
+            renderMarkdown({ force: true });
         }
 
         // Load saved content on page open
         loadFromStorage();
-        renderMarkdown();
+        renderMarkdown({ force: true });
 
         // Throttle saves to at most once every 5s while typing.
         let saveTimer = null;
@@ -1214,14 +1273,17 @@ A beautiful markdown renderer with an editorial aesthetic.
             saveToStorage();
         }
 
-        textarea.addEventListener('input', scheduleSave);
+        textarea.addEventListener('input', function() {
+            scheduleSave();
+            schedulePreviewRender();
+        });
 
         textarea.addEventListener('blur', flushPendingSave);
 
         window.addEventListener('beforeunload', flushPendingSave);
 
-        // Preview re-renders on a fixed 5s tick, independent of typing.
-        setInterval(renderMarkdown, 5000);
+        // Preview rendering is dirty-driven: render shortly after typing pauses,
+        // but at least every 5s during continuous edits. Unchanged content is skipped.
 
         // Double-click the draft selector to rename the current draft.
         documentSelect.addEventListener('dblclick', function(e) {
@@ -1255,7 +1317,8 @@ A beautiful markdown renderer with an editorial aesthetic.
             triggerDownload(URL.createObjectURL(blob), 'document.md');
         }
 
-        function exportHTML() {
+        async function exportHTML() {
+            await flushPreviewRender();
             const html = '<!DOCTYPE html>\n<html lang="en">\n<head>\n' +
                 '  <meta charset="UTF-8">\n' +
                 '  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
@@ -1267,7 +1330,8 @@ A beautiful markdown renderer with an editorial aesthetic.
             triggerDownload(URL.createObjectURL(blob), 'document.html');
         }
 
-        function exportPDF() {
+        async function exportPDF() {
+            await flushPreviewRender();
             // Create container at left edge for proper capture
             const wrapper = document.createElement('div');
             wrapper.style.cssText = 'position:fixed;top:0;left:0;z-index:9999;overflow:visible;';
