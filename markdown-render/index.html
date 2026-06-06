@@ -10,6 +10,20 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('ink-theme');
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = savedTheme === 'dark' || savedTheme === 'light'
+                    ? savedTheme
+                    : (prefersDark ? 'dark' : 'light');
+                document.documentElement.dataset.theme = theme;
+            } catch (e) {
+                document.documentElement.dataset.theme = 'light';
+            }
+        })();
+    </script>
     <style>
         *, *::before, *::after {
             margin: 0;
@@ -18,6 +32,7 @@
         }
 
         :root {
+            color-scheme: light;
             --ink: #1a1a1a;
             --paper: #faf8f5;
             --cream: #f5f2ed;
@@ -25,9 +40,34 @@
             --graphite: #6b6b6b;
             --rust: #c45c3e;
             --deep-rust: #9a3d25;
+            --rust-soft: rgba(196, 92, 62, 0.08);
+            --shadow-soft: rgba(26, 26, 26, 0.1);
+            --code-block-bg: #1a1a1a;
+            --code-block-text: #f5f2ed;
+            --error-bg: #fdf3f3;
+            --error-border: #d9534f;
+            --error-text: #ffffff;
             --serif: 'Cormorant Garamond', Georgia, serif;
             --sans: 'Outfit', sans-serif;
             --mono: 'JetBrains Mono', monospace;
+        }
+
+        html[data-theme="dark"] {
+            color-scheme: dark;
+            --ink: #f1eee8;
+            --paper: #11100f;
+            --cream: #191715;
+            --stone: #332f2b;
+            --graphite: #b2aaa1;
+            --rust: #e1785d;
+            --deep-rust: #ff9a7f;
+            --rust-soft: rgba(225, 120, 93, 0.16);
+            --shadow-soft: rgba(0, 0, 0, 0.42);
+            --code-block-bg: #080807;
+            --code-block-text: #f4efe6;
+            --error-bg: #2b1515;
+            --error-border: #e16561;
+            --error-text: #fff5f4;
         }
 
         html, body {
@@ -159,8 +199,8 @@
         }
 
         .icon-action-btn svg {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
         }
 
         .action-btn {
@@ -187,8 +227,21 @@
         }
 
         .action-btn svg {
-            width: 14px;
-            height: 14px;
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+            stroke-width: 2.2;
+        }
+
+        .action-btn.icon-action-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        #themeToggle svg {
+            width: 19px;
+            height: 19px;
+            stroke-width: 2.3;
         }
 
         /* Popover menus */
@@ -210,7 +263,7 @@
             background: var(--paper);
             border: 1px solid var(--stone);
             border-radius: 4px;
-            box-shadow: 0 12px 32px rgba(26, 26, 26, 0.1);
+            box-shadow: 0 12px 32px var(--shadow-soft);
             padding: 4px;
             display: none;
             flex-direction: column;
@@ -440,7 +493,7 @@
 
         #preview a:hover {
             color: var(--deep-rust);
-            background: rgba(196, 92, 62, 0.08);
+            background: var(--rust-soft);
         }
 
         #preview code {
@@ -454,8 +507,8 @@
         }
 
         #preview pre {
-            background: var(--ink);
-            color: var(--cream);
+            background: var(--code-block-bg);
+            color: var(--code-block-text);
             padding: 24px;
             border-radius: 4px;
             overflow-x: auto;
@@ -608,16 +661,16 @@
 
         .mermaid-error {
             margin: 1.5em 0;
-            border: 1px solid #d9534f;
+            border: 1px solid var(--error-border);
             border-radius: 4px;
-            background: #fdf3f3;
+            background: var(--error-bg);
             overflow: hidden;
         }
 
         .mermaid-error-msg {
             padding: 10px 14px;
-            background: #d9534f;
-            color: #fff;
+            background: var(--error-border);
+            color: var(--error-text);
             font-family: var(--serif);
             font-size: 0.95em;
         }
@@ -819,9 +872,9 @@
                 <div class="menu-wrap" data-menu="draft">
                     <button class="action-btn icon-action-btn menu-trigger" onclick="toggleMenu('draft')" title="More draft actions" aria-label="More draft actions" aria-haspopup="true" aria-expanded="false">
                         <svg viewBox="0 0 24 24" fill="currentColor">
-                            <circle cx="5" cy="12" r="1.6"/>
-                            <circle cx="12" cy="12" r="1.6"/>
-                            <circle cx="19" cy="12" r="1.6"/>
+                            <circle cx="5" cy="12" r="2"/>
+                            <circle cx="12" cy="12" r="2"/>
+                            <circle cx="19" cy="12" r="2"/>
                         </svg>
                     </button>
                     <div class="menu-panel" role="menu">
@@ -831,6 +884,15 @@
                     </div>
                 </div>
             </div>
+            <button class="action-btn icon-action-btn" id="themeToggle" onclick="toggleTheme()" title="Switch to dark mode" aria-label="Switch to dark mode" aria-pressed="false">
+                <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5A7 7 0 0 0 20.5 14.5Z"/>
+                </svg>
+                <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" hidden>
+                    <circle cx="12" cy="12" r="5"/>
+                    <path d="M12 1v3M12 20v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M1 12h3M20 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>
+                </svg>
+            </button>
             <div class="menu-wrap" data-menu="export">
                 <button class="action-btn menu-trigger" onclick="toggleMenu('export')" aria-haspopup="true" aria-expanded="false">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -890,9 +952,9 @@ A beautiful markdown renderer with an editorial aesthetic.
         const textarea = document.getElementById('markdown');
         const preview = document.getElementById('preview');
         const documentSelect = document.getElementById('documentSelect');
+        const themeToggle = document.getElementById('themeToggle');
 
-        mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
-
+        const THEME_STORAGE_KEY = 'ink-theme';
         let mermaidIdCounter = 0;
         let docsIndex = [];
         let activeDocId = null;
@@ -908,6 +970,52 @@ A beautiful markdown renderer with an editorial aesthetic.
         let previewRenderMaxTimer = null;
         let lastRenderedMarkdown = null;
         let renderSequence = 0;
+
+        function getCurrentTheme() {
+            return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+        }
+
+        function getMermaidTheme() {
+            return getCurrentTheme() === 'dark' ? 'dark' : 'neutral';
+        }
+
+        function configureMermaid() {
+            mermaid.initialize({ startOnLoad: false, theme: getMermaidTheme() });
+        }
+
+        function updateThemeToggle() {
+            if (!themeToggle) return;
+            const isDark = getCurrentTheme() === 'dark';
+            const nextThemeLabel = isDark ? 'light' : 'dark';
+            themeToggle.setAttribute('aria-pressed', String(isDark));
+            themeToggle.setAttribute('aria-label', 'Switch to ' + nextThemeLabel + ' mode');
+            themeToggle.title = 'Switch to ' + nextThemeLabel + ' mode';
+            const moon = themeToggle.querySelector('.theme-icon-moon');
+            const sun = themeToggle.querySelector('.theme-icon-sun');
+            if (moon) moon.hidden = isDark;
+            if (sun) sun.hidden = !isDark;
+        }
+
+        function setTheme(theme, options) {
+            const nextTheme = theme === 'dark' ? 'dark' : 'light';
+            const shouldRender = options && options.render;
+            document.documentElement.dataset.theme = nextTheme;
+            try {
+                localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+            } catch (e) {
+                console.warn('Failed to save theme preference:', e);
+            }
+            updateThemeToggle();
+            configureMermaid();
+            if (shouldRender) renderMarkdown({ force: true });
+        }
+
+        function toggleTheme() {
+            setTheme(getCurrentTheme() === 'dark' ? 'light' : 'dark', { render: true });
+        }
+
+        configureMermaid();
+        updateThemeToggle();
 
         function cleanupMermaidStragglers() {
             // Mermaid appends a measurement container `<div id="d{id}">` (and an
@@ -1312,6 +1420,60 @@ A beautiful markdown renderer with an editorial aesthetic.
             .mermaid-diagram{margin:1.5em 0;text-align:center;}
         `;
 
+        const DARK_CSS = `
+            body{font-family:'Cormorant Garamond',Georgia,serif;max-width:720px;margin:48px auto;padding:0 24px;color:#f1eee8;line-height:1.9;background:#11100f;}
+            h1{font-size:2.5em;font-weight:700;margin:0 0 0.5em;letter-spacing:-0.03em;color:#f1eee8;}
+            h2{font-size:1.6em;font-weight:600;margin:2em 0 0.75em;padding-bottom:0.5em;border-bottom:1px solid #332f2b;color:#f1eee8;}
+            h3{font-family:'Outfit',sans-serif;font-size:1.1em;font-weight:600;margin:1.75em 0 0.75em;letter-spacing:0.02em;color:#f1eee8;}
+            p{font-size:1.1em;margin:1em 0;text-align:justify;color:#f1eee8;}
+            a{color:#e1785d;text-decoration:none;border-bottom:1px solid currentColor;}
+            code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:#191715;padding:3px 8px;border-radius:3px;color:#ff9a7f;border:1px solid #332f2b;}
+            pre{background:#080807;color:#f4efe6;padding:24px;border-radius:4px;overflow-x:auto;margin:1.5em 0;line-height:1.6;border-top:3px solid #e1785d;}
+            pre code{background:none;color:inherit;padding:0;border:none;}
+            blockquote{font-style:italic;color:#b2aaa1;border-left:3px solid #e1785d;padding-left:24px;margin:1.5em 0;}
+            ul,ol{margin:1em 0;padding-left:1.5em;}
+            li{margin:0.5em 0;color:#f1eee8;}
+            table{width:100%;border-collapse:collapse;margin:1.5em 0;font-family:'Outfit',sans-serif;font-size:0.9em;}
+            th{background:#191715;padding:14px 16px;text-align:left;font-weight:600;border-bottom:2px solid #f1eee8;color:#f1eee8;}
+            td{padding:14px 16px;border-bottom:1px solid #332f2b;color:#f1eee8;}
+            hr{border:none;height:1px;background:#332f2b;margin:3em 0;}
+            img{max-width:100%;height:auto;border-radius:4px;margin:1.5em 0;}
+            .mermaid-diagram{margin:1.5em 0;text-align:center;background:#191715;padding:24px;border-radius:4px;}
+        `;
+
+        const PDF_PALETTES = {
+            light: {
+                paper: '#faf8f5',
+                ink: '#1a1a1a',
+                cream: '#f5f2ed',
+                stone: '#e8e4dd',
+                graphite: '#6b6b6b',
+                rust: '#c45c3e',
+                deepRust: '#9a3d25',
+                codeBg: '#1a1a1a',
+                codeText: '#f5f2ed'
+            },
+            dark: {
+                paper: '#11100f',
+                ink: '#f1eee8',
+                cream: '#191715',
+                stone: '#332f2b',
+                graphite: '#b2aaa1',
+                rust: '#e1785d',
+                deepRust: '#ff9a7f',
+                codeBg: '#080807',
+                codeText: '#f4efe6'
+            }
+        };
+
+        function getExportCss() {
+            return getCurrentTheme() === 'dark' ? DARK_CSS : LIGHT_CSS;
+        }
+
+        function getPdfPalette() {
+            return PDF_PALETTES[getCurrentTheme()];
+        }
+
         function exportMD() {
             const blob = new Blob([textarea.value], {type: 'text/markdown'});
             triggerDownload(URL.createObjectURL(blob), 'document.md');
@@ -1324,7 +1486,7 @@ A beautiful markdown renderer with an editorial aesthetic.
                 '  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
                 '  <title>Document</title>\n' +
                 '  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400&family=Outfit:wght@400;600&display=swap" rel="stylesheet">\n' +
-                '  <style>' + LIGHT_CSS + '</style>\n' +
+                '  <style>' + getExportCss() + '</style>\n' +
                 '</head>\n<body>\n' + preview.innerHTML + '\n</body>\n</html>';
             const blob = new Blob([html], {type: 'text/html'});
             triggerDownload(URL.createObjectURL(blob), 'document.html');
@@ -1332,32 +1494,33 @@ A beautiful markdown renderer with an editorial aesthetic.
 
         async function exportPDF() {
             await flushPreviewRender();
+            const palette = getPdfPalette();
             // Create container at left edge for proper capture
             const wrapper = document.createElement('div');
             wrapper.style.cssText = 'position:fixed;top:0;left:0;z-index:9999;overflow:visible;';
 
             const clone = document.createElement('div');
-            clone.style.cssText = 'width:800px;padding:48px;background:#faf8f5;color:#1a1a1a;line-height:1.8;box-sizing:border-box;';
+            clone.style.cssText = 'width:800px;padding:48px;background:' + palette.paper + ';color:' + palette.ink + ';line-height:1.8;box-sizing:border-box;';
 
             const styleEl = document.createElement('style');
             styleEl.textContent = `
                 .pdf-content * { box-sizing: border-box; }
                 .pdf-content { font-family: Georgia, "Times New Roman", serif; font-size: 12pt; }
-                .pdf-content h1 { font-size: 24pt; font-weight: 700; margin: 0 0 12pt; color: #1a1a1a; }
-                .pdf-content h2 { font-size: 18pt; font-weight: 600; margin: 24pt 0 12pt; padding-bottom: 6pt; border-bottom: 1px solid #e8e4dd; color: #1a1a1a; }
-                .pdf-content h3 { font-size: 14pt; font-weight: 600; margin: 18pt 0 8pt; color: #1a1a1a; }
-                .pdf-content p { font-size: 12pt; margin: 10pt 0; color: #1a1a1a; }
-                .pdf-content a { color: #c45c3e; text-decoration: none; }
-                .pdf-content code { font-family: "Courier New", monospace; font-size: 10pt; background: #f5f2ed; padding: 2pt 5pt; border-radius: 2pt; color: #9a3d25; }
-                .pdf-content pre { background: #1a1a1a; color: #f5f2ed; padding: 12pt; border-radius: 4pt; margin: 12pt 0; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; }
+                .pdf-content h1 { font-size: 24pt; font-weight: 700; margin: 0 0 12pt; color: ${palette.ink}; }
+                .pdf-content h2 { font-size: 18pt; font-weight: 600; margin: 24pt 0 12pt; padding-bottom: 6pt; border-bottom: 1px solid ${palette.stone}; color: ${palette.ink}; }
+                .pdf-content h3 { font-size: 14pt; font-weight: 600; margin: 18pt 0 8pt; color: ${palette.ink}; }
+                .pdf-content p { font-size: 12pt; margin: 10pt 0; color: ${palette.ink}; }
+                .pdf-content a { color: ${palette.rust}; text-decoration: none; }
+                .pdf-content code { font-family: "Courier New", monospace; font-size: 10pt; background: ${palette.cream}; padding: 2pt 5pt; border-radius: 2pt; color: ${palette.deepRust}; }
+                .pdf-content pre { background: ${palette.codeBg}; color: ${palette.codeText}; padding: 12pt; border-radius: 4pt; margin: 12pt 0; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; }
                 .pdf-content pre code { background: none; color: inherit; padding: 0; }
-                .pdf-content blockquote { font-style: italic; color: #6b6b6b; border-left: 3pt solid #c45c3e; padding-left: 12pt; margin: 12pt 0; }
+                .pdf-content blockquote { font-style: italic; color: ${palette.graphite}; border-left: 3pt solid ${palette.rust}; padding-left: 12pt; margin: 12pt 0; }
                 .pdf-content ul, .pdf-content ol { margin: 10pt 0; padding-left: 20pt; }
                 .pdf-content li { margin: 5pt 0; }
                 .pdf-content table { width: 100%; border-collapse: collapse; margin: 12pt 0; font-size: 11pt; }
-                .pdf-content th { background: #f5f2ed; padding: 8pt 10pt; text-align: left; font-weight: 600; border-bottom: 2pt solid #1a1a1a; }
-                .pdf-content td { padding: 8pt 10pt; border-bottom: 1pt solid #e8e4dd; }
-                .pdf-content hr { border: none; height: 1pt; background: #e8e4dd; margin: 20pt 0; }
+                .pdf-content th { background: ${palette.cream}; padding: 8pt 10pt; text-align: left; font-weight: 600; border-bottom: 2pt solid ${palette.ink}; color: ${palette.ink}; }
+                .pdf-content td { padding: 8pt 10pt; border-bottom: 1pt solid ${palette.stone}; color: ${palette.ink}; }
+                .pdf-content hr { border: none; height: 1pt; background: ${palette.stone}; margin: 20pt 0; }
                 .pdf-content img { max-width: 100%; height: auto; }
             `;
             wrapper.appendChild(styleEl);
@@ -1379,7 +1542,7 @@ A beautiful markdown renderer with an editorial aesthetic.
                     html2canvas: {
                         scale: 2,
                         useCORS: true,
-                        backgroundColor: '#faf8f5',
+                        backgroundColor: palette.paper,
                         logging: false,
                         x: 0,
                         y: 0,
