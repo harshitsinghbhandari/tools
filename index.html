@@ -22,6 +22,7 @@
             --text-dim: #888890;
             --accent-1: #00ff88;
             --accent-2: #c45c3e;
+            --accent-3: #a06cff;
             --font-display: 'Syne', sans-serif;
             --font-mono: 'IBM Plex Mono', monospace;
         }
@@ -371,6 +372,10 @@
             --card-accent: var(--accent-2);
         }
 
+        .tool-card.cue {
+            --card-accent: var(--accent-3);
+        }
+
         .tool-card.flux {
             --card-accent: var(--accent-1);
         }
@@ -467,6 +472,7 @@
 
         .tool-card:nth-child(1) { animation-delay: 0.4s; }
         .tool-card:nth-child(2) { animation-delay: 0.5s; }
+        .tool-card:nth-child(3) { animation-delay: 0.6s; }
     </style>
 </head>
 <body>
@@ -542,6 +548,31 @@
                         </div>
                     </a>
 
+                    <a href="./cue/" class="tool-card cue">
+                        <div class="tool-card-header">
+                            <div class="tool-icon">C</div>
+                            <div class="tool-arrow">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="tool-content">
+                            <h3 class="tool-name">Cue</h3>
+                            <p class="tool-tagline">Script Notes</p>
+                            <p class="tool-description">
+                                A scratchpad for video scripts that pops out into a floating,
+                                always-on-top window. Write your beats, then read them while you record.
+                            </p>
+                        </div>
+                        <div class="tool-tags">
+                            <span class="tool-tag">Notes</span>
+                            <span class="tool-tag">Popup</span>
+                            <span class="tool-tag">Autosave</span>
+                            <span class="tool-tag">PiP</span>
+                        </div>
+                    </a>
+
                     <a href="./timer/" class="tool-card flux">
                         <div class="tool-card-header">
                             <div class="tool-icon">F</div>
@@ -577,6 +608,7 @@
                 <p class="footer-text">Built with precision. No dependencies required.</p>
                 <div class="footer-links">
                     <a href="./markdown-render/" class="footer-link">Ink</a>
+                    <a href="./cue/" class="footer-link">Cue</a>
                     <a href="./timer/" class="footer-link">Flux</a>
                 </div>
             </div>

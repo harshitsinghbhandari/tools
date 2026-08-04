@@ -5,12 +5,14 @@ Tools is a small static site of productivity utilities.
 ## What’s included
 
 - **Ink** — a markdown renderer with live preview, Mermaid support, and HTML/PDF export
+- **Cue** — a script-notes scratchpad that pops out into a floating, always-on-top window
 - **Flux** — a focus timer with presets, focus mode, and picture-in-picture support
 
 ## Project structure
 
 - `index.html` — landing page
 - `markdown-render/` — Ink
+- `cue/` — Cue
 - `timer/` — Flux
 
 ## Usage

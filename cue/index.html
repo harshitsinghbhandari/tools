@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cue — Script Notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #08080a;
+      --surface: #111114;
+      --border: #222228;
+      --text: #ffffff;
+      --text-dim: #888890;
+      --accent: #a06cff;
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-display);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(160, 108, 255, 0.08), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Top bar */
+    .top-bar {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 16px var(--accent);
+    }
+
+    .brand-text {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .home-link {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      margin-left: 6px;
+      transition: color 0.2s;
+    }
+
+    .home-link:hover {
+      color: var(--text);
+    }
+
+    .bar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .saved-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin-right: 6px;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .saved-dot.on {
+      opacity: 1;
+    }
+
+    .icon-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .icon-btn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .icon-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .icon-btn.active {
+      color: var(--bg);
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Editor */
+    #note-container {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: flex;
+      min-height: 0;
+    }
+
+    #note {
+      flex: 1;
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: none;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: var(--note-size, 16px);
+      line-height: 1.75;
+      letter-spacing: 0.01em;
+      padding: 32px 28px 48px;
+      tab-size: 2;
+    }
+
+    #note::placeholder {
+      color: var(--text-dim);
+      opacity: 0.5;
+    }
+
+    #note::selection {
+      background: rgba(160, 108, 255, 0.3);
+    }
+
+    #note::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    #note::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 5px;
+    }
+
+    #note::-webkit-scrollbar-thumb:hover {
+      background: #33333c;
+    }
+
+    /* Shown in the main tab while the note lives in the popup */
+    .pip-overlay {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .pip-overlay p {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .pip-overlay button {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 10px 22px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pip-overlay button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Mobile block */
+    .mobile-block { display: none; }
+    @media (max-width: 600px) {
+      .mobile-block {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg);
+        color: var(--text);
+        padding: 40px 28px;
+        text-align: center;
+        font-family: var(--font-display);
+        font-size: 26px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        line-height: 1.3;
+      }
+      .mobile-block::after {
+        content: '';
+        position: absolute;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 8px;
+        height: 8px;
+        background: var(--accent);
+        border-radius: 50%;
+        box-shadow: 0 0 16px var(--accent);
+      }
+      body > *:not(.mobile-block) { display: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="mobile-block">I don't want you using this on the phone</div>
+
+  <div class="top-bar">
+    <div class="brand">
+      <div class="brand-icon"></div>
+      <span class="brand-text">Cue</span>
+      <a href="../" class="home-link">Tools</a>
+    </div>
+    <div class="bar-right">
+      <span class="meta"><span class="saved-dot" id="savedDot"></span><span id="count">0 words</span></span>
+      <div class="icon-btns">
+        <button class="icon-btn" id="smallerBtn" aria-label="Smaller text">A-</button>
+        <button class="icon-btn" id="biggerBtn" aria-label="Bigger text">A+</button>
+        <button class="icon-btn" id="popoutBtn" aria-label="Pop out notes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="note-container">
+    <textarea id="note" spellcheck="false" placeholder="Hook: open cold, no intro&#10;- lead with the problem&#10;- demo at 0:40&#10;&#10;Beat 2: the fix&#10;- show the diff, then the number"></textarea>
+  </div>
+
+  <div class="pip-overlay" id="pipOverlay">
+    <p>Notes are in the popup</p>
+    <button id="bringBackBtn">Bring them back</button>
+  </div>
+
+  <script>
+    const NOTE_KEY = 'cue-note';
+    const SIZE_KEY = 'cue-size';
+
+    const note = document.getElementById('note');
+    const noteContainer = document.getElementById('note-container');
+    const savedDot = document.getElementById('savedDot');
+    const count = document.getElementById('count');
+    const popoutBtn = document.getElementById('popoutBtn');
+    const pipOverlay = document.getElementById('pipOverlay');
+
+    let pipWindow = null;
+    let saveTimer = null;
+    let dotTimer = null;
+
+    // Restore
+    let savedSize = 16;
+    try {
+      note.value = localStorage.getItem(NOTE_KEY) || '';
+      savedSize = Number(localStorage.getItem(SIZE_KEY)) || 16;
+    } catch (e) { /* private mode: run without persistence */ }
+    setSize(savedSize);
+    updateCount();
+
+    note.addEventListener('input', () => {
+      updateCount();
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(save, 400);
+    });
+
+    // Don't lose the last few keystrokes if the tab closes inside the debounce window.
+    window.addEventListener('pagehide', save);
+
+    function save() {
+      try {
+        localStorage.setItem(NOTE_KEY, note.value);
+      } catch (e) {
+        return;
+      }
+      savedDot.classList.add('on');
+      clearTimeout(dotTimer);
+      dotTimer = setTimeout(() => savedDot.classList.remove('on'), 1200);
+    }
+
+    function updateCount() {
+      const words = note.value.trim().split(/\s+/).filter(Boolean).length;
+      count.textContent = words === 1 ? '1 word' : words + ' words';
+    }
+
+    function setSize(px) {
+      const size = Math.min(40, Math.max(11, px));
+      document.documentElement.style.setProperty('--note-size', size + 'px');
+      if (pipWindow) {
+        pipWindow.document.documentElement.style.setProperty('--note-size', size + 'px');
+      }
+      try {
+        localStorage.setItem(SIZE_KEY, size);
+      } catch (e) { /* ignore */ }
+      return size;
+    }
+
+    function currentSize() {
+      return parseInt(document.documentElement.style.getPropertyValue('--note-size'), 10) || 16;
+    }
+
+    document.getElementById('smallerBtn').addEventListener('click', () => setSize(currentSize() - 2));
+    document.getElementById('biggerBtn').addEventListener('click', () => setSize(currentSize() + 2));
+    document.getElementById('bringBackBtn').addEventListener('click', () => pipWindow && pipWindow.close());
+    popoutBtn.addEventListener('click', togglePiP);
+
+    async function togglePiP() {
+      if (pipWindow) {
+        pipWindow.close();
+        return;
+      }
+
+      if (!('documentPictureInPicture' in window)) {
+        alert('Document Picture-in-Picture is not supported in this browser. Try Chrome 116+');
+        return;
+      }
+
+      try {
+        pipWindow = await window.documentPictureInPicture.requestWindow({
+          width: 380,
+          height: 480,
+        });
+
+        [...document.styleSheets].forEach((styleSheet) => {
+          try {
+            const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
+            const style = document.createElement('style');
+            style.textContent = cssRules;
+            pipWindow.document.head.appendChild(style);
+          } catch (e) {
+            if (styleSheet.href) {
+              const link = document.createElement('link');
+              link.rel = 'stylesheet';
+              link.type = styleSheet.type;
+              link.media = styleSheet.media;
+              link.href = styleSheet.href;
+              pipWindow.document.head.appendChild(link);
+            }
+          }
+        });
+
+        const pipStyle = document.createElement('style');
+        pipStyle.textContent = `
+          body { height: 100%; overflow: hidden; }
+          body::before { display: none; }
+          .mobile-block { display: none !important; }
+          /* The PiP window is narrower than 600px, so the mobile-block media
+             query fires in here and hides every body child. Undo that. */
+          body > #note-container { display: flex !important; height: 100%; }
+          #note { padding: 16px 18px; line-height: 1.7; }
+        `;
+        pipWindow.document.head.appendChild(pipStyle);
+        pipWindow.document.documentElement.style.setProperty('--note-size', currentSize() + 'px');
+
+        pipWindow.document.body.append(noteContainer);
+        pipOverlay.style.display = 'flex';
+        popoutBtn.classList.add('active');
+
+        pipWindow.addEventListener('pagehide', () => {
+          pipWindow = null;
+          document.body.insertBefore(noteContainer, pipOverlay);
+          pipOverlay.style.display = 'none';
+          popoutBtn.classList.remove('active');
+        });
+      } catch (err) {
+        console.error('Failed to enter PiP:', err);
+        pipWindow = null;
+      }
+    }
+  </script>
+</body>
+
+</html>
