@@ -422,12 +422,15 @@
 
         const pipStyle = document.createElement('style');
         pipStyle.textContent = `
-          body { height: 100%; overflow: hidden; }
+          /* Give the flex column a real height to divide up. Without an
+             explicit height on html, body's percentage height resolves to
+             auto and the textarea collapses to its intrinsic ~2 rows. */
+          html, body { height: 100%; }
           body::before { display: none; }
           .mobile-block { display: none !important; }
           /* The PiP window is narrower than 600px, so the mobile-block media
              query fires in here and hides every body child. Undo that. */
-          body > #note-container { display: flex !important; height: 100%; }
+          body > #note-container { display: flex !important; }
           #note { padding: 16px 18px; line-height: 1.7; }
         `;
         pipWindow.document.head.appendChild(pipStyle);
