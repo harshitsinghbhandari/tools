@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared/base.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -33,6 +34,14 @@
 
         :root {
             color-scheme: light;
+            --bg: var(--paper);
+            --surface: var(--cream);
+            --border: var(--stone);
+            --border-strong: var(--graphite);
+            --text: var(--ink);
+            --text-dim: var(--graphite);
+            --accent: var(--rust);
+            --font-display: var(--serif);
             --ink: #1a1a1a;
             --paper: #faf8f5;
             --cream: #f5f2ed;
@@ -411,24 +420,6 @@
             line-height: 1.9;
         }
 
-        /* Scrollbar */
-        #preview::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        #preview::-webkit-scrollbar-track {
-            background: var(--cream);
-        }
-
-        #preview::-webkit-scrollbar-thumb {
-            background: var(--stone);
-            border-radius: 4px;
-        }
-
-        #preview::-webkit-scrollbar-thumb:hover {
-            background: var(--graphite);
-        }
-
         /* Markdown preview styles */
         #preview h1 {
             font-family: var(--serif);
@@ -593,7 +584,7 @@
             height: auto;
             border-radius: 4px;
             margin: 1.5em 0;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px var(--shadow-soft);
         }
 
         #preview table {
@@ -814,38 +805,6 @@
             animation: fadeIn 0.3s ease-out;
         }
 
-        /* Mobile block */
-        .mobile-block { display: none; }
-        @media (max-width: 600px) {
-            .mobile-block {
-                display: flex;
-                position: fixed;
-                inset: 0;
-                z-index: 9999;
-                align-items: center;
-                justify-content: center;
-                background: var(--paper);
-                color: var(--ink);
-                padding: 40px 28px;
-                text-align: center;
-                font-family: var(--serif);
-                font-size: 32px;
-                font-style: italic;
-                font-weight: 600;
-                line-height: 1.3;
-            }
-            .mobile-block::after {
-                content: '';
-                position: absolute;
-                bottom: 48px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 32px;
-                height: 2px;
-                background: var(--rust);
-            }
-            body > *:not(.mobile-block) { display: none !important; }
-        }
     </style>
 </head>
 <body>
@@ -1399,49 +1358,9 @@ A beautiful markdown renderer with an editorial aesthetic.
             renameDocument();
         });
 
-        const LIGHT_CSS = `
-            body{font-family:'Cormorant Garamond',Georgia,serif;max-width:720px;margin:48px auto;padding:0 24px;color:#1a1a1a;line-height:1.9;background:#faf8f5;}
-            h1{font-size:2.5em;font-weight:700;margin:0 0 0.5em;letter-spacing:-0.03em;}
-            h2{font-size:1.6em;font-weight:600;margin:2em 0 0.75em;padding-bottom:0.5em;border-bottom:1px solid #e8e4dd;}
-            h3{font-family:'Outfit',sans-serif;font-size:1.1em;font-weight:600;margin:1.75em 0 0.75em;letter-spacing:0.02em;}
-            p{font-size:1.1em;margin:1em 0;text-align:justify;}
-            a{color:#c45c3e;text-decoration:none;border-bottom:1px solid currentColor;}
-            code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:#f5f2ed;padding:3px 8px;border-radius:3px;color:#9a3d25;border:1px solid #e8e4dd;}
-            pre{background:#1a1a1a;color:#f5f2ed;padding:24px;border-radius:4px;overflow-x:auto;margin:1.5em 0;line-height:1.6;border-top:3px solid #c45c3e;}
-            pre code{background:none;color:inherit;padding:0;border:none;}
-            blockquote{font-style:italic;color:#6b6b6b;border-left:3px solid #c45c3e;padding-left:24px;margin:1.5em 0;}
-            ul,ol{margin:1em 0;padding-left:1.5em;}
-            li{margin:0.5em 0;}
-            table{width:100%;border-collapse:collapse;margin:1.5em 0;font-family:'Outfit',sans-serif;font-size:0.9em;}
-            th{background:#f5f2ed;padding:14px 16px;text-align:left;font-weight:600;border-bottom:2px solid #1a1a1a;}
-            td{padding:14px 16px;border-bottom:1px solid #e8e4dd;}
-            hr{border:none;height:1px;background:#e8e4dd;margin:3em 0;}
-            img{max-width:100%;height:auto;border-radius:4px;margin:1.5em 0;}
-            .mermaid-diagram{margin:1.5em 0;text-align:center;}
-        `;
-
-        const DARK_CSS = `
-            body{font-family:'Cormorant Garamond',Georgia,serif;max-width:720px;margin:48px auto;padding:0 24px;color:#f1eee8;line-height:1.9;background:#11100f;}
-            h1{font-size:2.5em;font-weight:700;margin:0 0 0.5em;letter-spacing:-0.03em;color:#f1eee8;}
-            h2{font-size:1.6em;font-weight:600;margin:2em 0 0.75em;padding-bottom:0.5em;border-bottom:1px solid #332f2b;color:#f1eee8;}
-            h3{font-family:'Outfit',sans-serif;font-size:1.1em;font-weight:600;margin:1.75em 0 0.75em;letter-spacing:0.02em;color:#f1eee8;}
-            p{font-size:1.1em;margin:1em 0;text-align:justify;color:#f1eee8;}
-            a{color:#e1785d;text-decoration:none;border-bottom:1px solid currentColor;}
-            code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:#191715;padding:3px 8px;border-radius:3px;color:#ff9a7f;border:1px solid #332f2b;}
-            pre{background:#080807;color:#f4efe6;padding:24px;border-radius:4px;overflow-x:auto;margin:1.5em 0;line-height:1.6;border-top:3px solid #e1785d;}
-            pre code{background:none;color:inherit;padding:0;border:none;}
-            blockquote{font-style:italic;color:#b2aaa1;border-left:3px solid #e1785d;padding-left:24px;margin:1.5em 0;}
-            ul,ol{margin:1em 0;padding-left:1.5em;}
-            li{margin:0.5em 0;color:#f1eee8;}
-            table{width:100%;border-collapse:collapse;margin:1.5em 0;font-family:'Outfit',sans-serif;font-size:0.9em;}
-            th{background:#191715;padding:14px 16px;text-align:left;font-weight:600;border-bottom:2px solid #f1eee8;color:#f1eee8;}
-            td{padding:14px 16px;border-bottom:1px solid #332f2b;color:#f1eee8;}
-            hr{border:none;height:1px;background:#332f2b;margin:3em 0;}
-            img{max-width:100%;height:auto;border-radius:4px;margin:1.5em 0;}
-            .mermaid-diagram{margin:1.5em 0;text-align:center;background:#191715;padding:24px;border-radius:4px;}
-        `;
-
-        const PDF_PALETTES = {
+        // Exports must stay self-contained, so this object deliberately mirrors the
+        // CSS variables in the page style block above; update both together.
+        const PALETTES = {
             light: {
                 paper: '#faf8f5',
                 ink: '#1a1a1a',
@@ -1466,12 +1385,44 @@ A beautiful markdown renderer with an editorial aesthetic.
             }
         };
 
+        // Builds the standalone-export <style> body from a palette. `dark` reproduces
+        // the explicit text-color and mermaid-panel declarations dark mode needs
+        // (light mode leaves that styling to inheritance/transparency instead), so
+        // exported HTML output matches what each theme has always produced.
+        function buildExportCss(p, dark) {
+            const textColor = dark ? `color:${p.ink};` : '';
+            const mermaidPanel = dark ? `background:${p.cream};padding:24px;border-radius:4px;` : '';
+            return `
+            body{font-family:'Cormorant Garamond',Georgia,serif;max-width:720px;margin:48px auto;padding:0 24px;color:${p.ink};line-height:1.9;background:${p.paper};}
+            h1{font-size:2.5em;font-weight:700;margin:0 0 0.5em;letter-spacing:-0.03em;${textColor}}
+            h2{font-size:1.6em;font-weight:600;margin:2em 0 0.75em;padding-bottom:0.5em;border-bottom:1px solid ${p.stone};${textColor}}
+            h3{font-family:'Outfit',sans-serif;font-size:1.1em;font-weight:600;margin:1.75em 0 0.75em;letter-spacing:0.02em;${textColor}}
+            p{font-size:1.1em;margin:1em 0;text-align:justify;${textColor}}
+            a{color:${p.rust};text-decoration:none;border-bottom:1px solid currentColor;}
+            code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:${p.cream};padding:3px 8px;border-radius:3px;color:${p.deepRust};border:1px solid ${p.stone};}
+            pre{background:${p.codeBg};color:${p.codeText};padding:24px;border-radius:4px;overflow-x:auto;margin:1.5em 0;line-height:1.6;border-top:3px solid ${p.rust};}
+            pre code{background:none;color:inherit;padding:0;border:none;}
+            blockquote{font-style:italic;color:${p.graphite};border-left:3px solid ${p.rust};padding-left:24px;margin:1.5em 0;}
+            ul,ol{margin:1em 0;padding-left:1.5em;}
+            li{margin:0.5em 0;${textColor}}
+            table{width:100%;border-collapse:collapse;margin:1.5em 0;font-family:'Outfit',sans-serif;font-size:0.9em;}
+            th{background:${p.cream};padding:14px 16px;text-align:left;font-weight:600;border-bottom:2px solid ${p.ink};${textColor}}
+            td{padding:14px 16px;border-bottom:1px solid ${p.stone};${textColor}}
+            hr{border:none;height:1px;background:${p.stone};margin:3em 0;}
+            img{max-width:100%;height:auto;border-radius:4px;margin:1.5em 0;}
+            .mermaid-diagram{margin:1.5em 0;text-align:center;${mermaidPanel}}
+        `;
+        }
+
+        const LIGHT_CSS = buildExportCss(PALETTES.light, false);
+        const DARK_CSS = buildExportCss(PALETTES.dark, true);
+
         function getExportCss() {
             return getCurrentTheme() === 'dark' ? DARK_CSS : LIGHT_CSS;
         }
 
         function getPdfPalette() {
-            return PDF_PALETTES[getCurrentTheme()];
+            return PALETTES[getCurrentTheme()];
         }
 
         function exportMD() {
